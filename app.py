@@ -35,6 +35,12 @@ st.markdown("""
     }
     [data-testid="stSidebar"] { background-color: #0d1117; border-right: 1px solid #30363d; }
     footer {visibility: hidden;}
+
+    /* ⭐ Mejora visual estrellas */
+    div[role="radiogroup"] > label {
+        font-size: 26px !important;
+        gap: 10px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -50,7 +56,6 @@ def load_data():
     df_items['genre_list'] = df_items.apply(lambda row: ", ".join([g for g in genre_names if row[g] == 1]), axis=1)
     return df_ratings, df_items[['item_id', 'title', 'genre_list', 'release_date']]
 
-# ✅ Ajuste aqui (cache_data)
 @st.cache_data(show_spinner=False)
 def run_soft_impute(matrix):
     from fancyimpute import SoftImpute
@@ -107,9 +112,19 @@ if st.session_state.view == 'home':
                 <h3>{current_movie['title']}</h3>
                 <p style='color: #8b949e;'>📅 {t['release_date']} {current_movie['release_date']} | 🎭 {t['genre_list']}: {current_movie['genre_list']}</p>
                 </div>""", unsafe_allow_html=True)
-            rating = st.feedback("stars", key=f"star_{st.session_state.current_idx}")
+
+            # ⭐ Substituição do feedback por estrelas
+            rating = st.radio(
+                "",
+                ["⭐", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"],
+                key=f"star_{st.session_state.current_idx}",
+                horizontal=True,
+                index=None
+            )
+
             if rating is not None:
-                st.session_state.my_ratings[current_movie['item_id']] = rating + 1
+                st.session_state.my_ratings[current_movie['item_id']] = len(rating)
+
                 if st.session_state.current_idx < 19:
                     st.session_state.current_idx += 1
                     st.rerun()
