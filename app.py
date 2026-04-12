@@ -3,6 +3,15 @@ import pandas as pd
 import numpy as np
 from scipy.sparse.linalg import svds
 
+
+# --- PATCH DE COMPATIBILIDADE (Para el SoftImpute)
+_orig_check_array = sklearn.utils.validation.check_array
+def _patched_check_array(array, *args, **kwargs):
+    if 'force_all_finite' in kwargs:
+        kwargs['ensure_all_finite'] = kwargs.pop('force_all_finite')
+    return _orig_check_array(array, *args, **kwargs)
+sklearn.utils.validation.check_array = _patched_check_array
+
 # 1. CONFIGURACIONES VISUALES E INTERFAZ
 st.set_page_config(page_title="Beetle TV Movie Stream", layout="centered")
 
