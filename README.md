@@ -7,8 +7,13 @@
   <img src="https://img.shields.io/badge/University-UDEM-yellow.svg" alt="UDEM">
 </p>
 
-### 🚀 **Access the Live Application / Acesse o App / Acceso Directo:**
-## **👉 [https://beetletv-movie-recommender.streamlit.app/](https://beetletv-movie-recommender.streamlit.app/)**
+### 🚀 Access the Live Application / Acesse o App / Acceso Directo:
+
+<p align="left">
+  <a href="https://beetletv-movie-recommender.streamlit.app/" target="_blank">
+    Beetle TV Movie Recommender
+  </a>
+</p>
 
 ---
 
