@@ -153,7 +153,9 @@ elif st.session_state.view == 'results':
             completed_matrix = np.dot(np.dot(u, np.diag(s)), vt)
         else:
             if 'completed_matrix_soft' not in st.session_state:
-                st.session_state.completed_matrix_soft = run_soft_impute(matrix_centered.values)
+                with st.spinner(t['loading']):
+                    input_matrix = matrix_centered.values.astype(np.float64)
+                    st.session_state.completed_matrix_soft = run_soft_impute(input_matrix)
             completed_matrix = st.session_state.completed_matrix_soft
 
         # Reconstrucción de predicciones y ordenamiento
