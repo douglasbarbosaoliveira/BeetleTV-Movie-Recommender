@@ -7,6 +7,7 @@ from scipy.sparse.linalg import svds
 # 1. CONFIGURACIONES VISUALES E INTERFAZ
 st.set_page_config(page_title="Beetle TV Movie Stream", layout="centered")
 
+# Estilos CSS personalizados para la interfaz
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600&display=swap');
@@ -36,7 +37,7 @@ st.markdown("""
     [data-testid="stSidebar"] { background-color: #0d1117; border-right: 1px solid #30363d; }
     footer {visibility: hidden;}
 
-    /* ⭐ Mejora visual estrellas */
+    /* ⭐ Mejora visual de los radio buttons de estrellas */
     div[role="radiogroup"] > label {
         font-size: 26px !important;
         gap: 10px;
@@ -45,6 +46,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # 2. CARGA DE DATOS Y MOTORES
+# Función para cargar el dataset de MovieLens
 @st.cache_data
 def load_data():
     df_ratings = pd.read_csv('u.data', sep='\t', names=['user_id', 'item_id', 'rating', 'timestamp'])
@@ -56,15 +58,18 @@ def load_data():
     df_items['genre_list'] = df_items.apply(lambda row: ", ".join([g for g in genre_names if row[g] == 1]), axis=1)
     return df_ratings, df_items[['item_id', 'title', 'genre_list', 'release_date']]
 
+# Función para ejecutar el algoritmo SoftImpute
 @st.cache_data(show_spinner=False)
 def run_soft_impute(matrix):
     from fancyimpute import SoftImpute
     solver = SoftImpute(verbose=False)
     return solver.fit_transform(matrix)
 
+# Carga inicial de datos
 df_ratings, df_movies = load_data()
 
 # 3. GESTIÓN DEL ESTADO DE LA SESIÓN
+# Inicialización de variables de estado para navegación y datos del usuario
 if 'view' not in st.session_state: st.session_state.view = 'home'
 if 'my_ratings' not in st.session_state: st.session_state.my_ratings = {}
 if 'current_idx' not in st.session_state: st.session_state.current_idx = 0
@@ -74,14 +79,21 @@ if 'random_sample' not in st.session_state:
     st.session_state.random_sample = df_movies.sample(20).reset_index(drop=True)
 
 # --- BARRA LATERAL ---
+# Configuración de idioma y modelo de recomendación
 st.sidebar.title("Beetle TV Stream")
 selected_lang = st.sidebar.selectbox("Idioma / Language", ["Español", "Português", "English"])
 algo_choice = st.sidebar.radio("Modelo / Model", ["SVD", "SoftImpute"])
 
+# Mensaje de advertencia para SoftImpute solicitado
+wait_msg = " (Este proceso tarda de 3 a 5 minutos)" if algo_choice == "SoftImpute" else ""
+wait_msg_en = " (This process takes 3 to 5 minutes)" if algo_choice == "SoftImpute" else ""
+wait_msg_pt = " (Este processo leva de 3 a 5 minutos)" if algo_choice == "SoftImpute" else ""
+
+# Diccionario de textos para soporte multi-idioma
 texts = {
-    "English": {"welcome": "Welcome", "subtitle": "Movie Discovery Engine", "header": "Rate 20 movies", "res": "Recommendations", "name": "Name", "age": "Age", "prev": "Previous", "next": "Next", "restart": "Restart","genre_list": "Genres","release_date": "Release Date:", "warning": "Enter your name.", "excellent": "Excellent, {name}!", "proceed": "Proceed", "loading": f"Calculating with {algo_choice}..."},
-    "Español": {"welcome": "Bienvenido", "subtitle": "Recomendación de Películas", "header": "Califica 20 películas", "res": "Recomendaciones", "name": "Nombre", "age": "Edad", "prev": "Anterior", "next": "Siguiente", "restart": "Reiniciar","genre_list": "Géneros","release_date": "Fecha de Estreno:", "warning": "Ingresa tu nombre.", "excellent": "¡Excelente, {name}!", "proceed": "Continuar", "loading": f"Calculando con {algo_choice}..."},
-    "Português": {"welcome": "Bem-vindo", "subtitle": "Recomendação de Filmes", "header": "Avalie 20 filmes", "res": "Recomendações", "name": "Nome", "age": "Idade", "prev": "Anterior", "next": "Próximo", "restart": "Reiniciar","genre_list": "Gêneros","release_date": "Data de Lançamento:", "warning": "Insira seu nome.", "excellent": "Excelente, {name}!", "proceed": "Prosseguir", "loading": f"Calculando com {algo_choice}..."}
+    "English": {"welcome": "Welcome", "subtitle": "Movie Discovery Engine", "header": "Rate 20 movies", "res": "Recommendations", "name": "Name", "age": "Age", "prev": "Previous", "next": "Next", "restart": "Restart","genre_list": "Genres","release_date": "Release Date:", "warning": "Enter your name.", "excellent": "Excellent, {name}!", "proceed": "Proceed", "loading": f"Calculating with {algo_choice}...{wait_msg_en}"},
+    "Español": {"welcome": "Bienvenido", "subtitle": "Recomendación de Películas", "header": "Califica 20 películas", "res": "Recomendaciones", "name": "Nombre", "age": "Edad", "prev": "Anterior", "next": "Siguiente", "restart": "Reiniciar","genre_list": "Géneros","release_date": "Fecha de Estreno:", "warning": "Ingresa tu nombre.", "excellent": "¡Excelente, {name}!", "proceed": "Continuar", "loading": f"Calculando con {algo_choice}...{wait_msg}"},
+    "Português": {"welcome": "Bem-vindo", "subtitle": "Recomendação de Filmes", "header": "Avalie 20 filmes", "res": "Recomendações", "name": "Nome", "age": "Idade", "prev": "Anterior", "next": "Próximo", "restart": "Reiniciar","genre_list": "Gêneros","release_date": "Data de Lançamento:", "warning": "Insira seu nome.", "excellent": "Excelente, {name}!", "proceed": "Prosseguir", "loading": f"Calculando com {algo_choice}...{wait_msg_pt}"}
 }
 t = texts[selected_lang]
 
@@ -90,6 +102,7 @@ if st.session_state.view == 'home':
     st.title(t['welcome'])
     st.markdown(f'<p class="subtitle">{t["subtitle"]}</p>', unsafe_allow_html=True)
 
+    # Formulario de inicio de sesión
     if not st.session_state.started:
         c1, c2 = st.columns([3, 1])
         input_name = c1.text_input(t["name"], placeholder="", key="temp_name_widget")
@@ -101,6 +114,8 @@ if st.session_state.view == 'home':
                 st.session_state.started = True
                 st.rerun()
             else: st.warning(t['warning'])
+    
+    # Proceso de calificación de las 20 películas aleatorias
     else:
         st.subheader(t['header'])
         st.progress((st.session_state.current_idx + 1) / 20)
@@ -113,7 +128,7 @@ if st.session_state.view == 'home':
                 <p style='color: #8b949e;'>📅 {t['release_date']} {current_movie['release_date']} | 🎭 {t['genre_list']}: {current_movie['genre_list']}</p>
                 </div>""", unsafe_allow_html=True)
 
-            # ⭐ Substituição do feedback por estrelas
+            # ⭐ Feedback por estrellas
             rating = st.radio(
                 "",
                 ["⭐", "⭐⭐", "⭐⭐⭐", "⭐⭐⭐⭐", "⭐⭐⭐⭐⭐"],
@@ -132,6 +147,7 @@ if st.session_state.view == 'home':
                     st.session_state.view = 'results'
                     st.rerun()
 
+        # Botones de navegación del carrusel
         col_prev, col_next = st.columns([1, 1])
         if col_prev.button(f"⬅️ {t['prev']}") and st.session_state.current_idx > 0:
             st.session_state.current_idx -= 1
@@ -145,14 +161,18 @@ elif st.session_state.view == 'results':
     st.title(t['res'])
     display_name = st.session_state.get('name_input', 'Douglas')
 
+    # Spinner de carga con el mensaje de tiempo para SoftImpute incluido
     with st.spinner(t['loading']):
+        # Preparación de la matriz Usuario-Ítem
         user_item_matrix = df_ratings.pivot(index='user_id', columns='item_id', values='rating')
         new_user_data = pd.Series(st.session_state.my_ratings, name=9999)
         user_item_matrix = pd.concat([user_item_matrix, new_user_data.to_frame().T])
 
+        # Centrado de la matriz restando la media
         user_means = user_item_matrix.mean(axis=1)
         matrix_centered = user_item_matrix.sub(user_means, axis=0)
 
+        # Ejecución del motor de recomendación seleccionado
         if algo_choice == "SVD":
             u, s, vt = svds(matrix_centered.fillna(0).values, k=20)
             completed_matrix = np.dot(np.dot(u, np.diag(s)), vt)
@@ -163,9 +183,11 @@ elif st.session_state.view == 'results':
 
             completed_matrix = st.session_state.completed_matrix_soft
 
+        # Reconstrucción de la matriz y cálculo de predicciones para el nuevo usuario
         final_preds = pd.DataFrame(completed_matrix, columns=user_item_matrix.columns, index=user_item_matrix.index)
         user_preds = (final_preds.loc[9999] + user_means[9999]).sort_values(ascending=False)
         
+        # Filtrado de recomendaciones (películas no vistas)
         recs_df = user_preds.reset_index()
         recs_df.columns = ['item_id', 'score']
         recs = pd.merge(recs_df, df_movies, on='item_id')
@@ -173,12 +195,14 @@ elif st.session_state.view == 'results':
 
     st.success(t['excellent'].format(name=display_name))
 
+    # Despliegue de los resultados
     for _, row in recs.iterrows():
         st.markdown(f"""<div class="movie-card">
             <b>{row['title']}</b><br>
             <small style='color: #8b949e;'>🎭 {row['genre_list']} | 📅 {row['release_date']}</small>
             </div>""", unsafe_allow_html=True)
 
+    # Botón para reiniciar la experiencia
     if st.button(t['restart'], use_container_width=True):
         st.session_state.view = 'home'
         st.session_state.my_ratings = {}
