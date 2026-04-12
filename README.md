@@ -3,6 +3,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.11-blue.svg" alt="Python">
   <img src="https://img.shields.io/badge/Machine--Learning-SVD-orange.svg" alt="ML">
+  <img src="https://img.shields.io/badge/Machine--Learning-SoftImpute-ff69b4.svg" alt="SoftImpute">
   <img src="https://img.shields.io/badge/Data--Science-Pandas-150458.svg" alt="Pandas">
   <img src="https://img.shields.io/badge/University-UDEM-yellow.svg" alt="UDEM">
 </p>
