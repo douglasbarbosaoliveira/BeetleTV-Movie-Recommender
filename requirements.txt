@@ -1,0 +1,13 @@
+# --- Web Framework ---
+streamlit>=1.30.0
+
+# --- Data Manipulation ---
+pandas>=2.1.0
+numpy>=1.26.0
+
+# --- Scientific Computing & Machine Learning ---
+scipy>=1.11.0
+fancyimpute>=0.7.0
+
+# --- System Dependencies ---
+cvxpy>=1.4.0
